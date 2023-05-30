@@ -64,8 +64,7 @@ if (!empty($_REQUEST['action'])) {
         @$contact = trim($_REQUEST['contact']);
         @$address = trim($_REQUEST['address']);
         @$city= trim($_REQUEST['city']);
-        $sql = " UPDATE tbl_user SET name='$name',email='$email',password='$password', 
-         contact='$contact', address='$address', city='$city' WHERE id = " . $_REQUEST['user_id'] . "";
+        $sql = " UPDATE tbl_user SET name='$name',email='$email',password='$password', contact ='$contact', address='$address', city='$city' WHERE id = " . $_REQUEST['user_id'] . "";
         $res = mysqli_query($dbc, $sql);
         if ($res == true) {
             $response = [
