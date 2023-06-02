@@ -21,8 +21,7 @@ if (!empty($_REQUEST['action'])) {
             $response = [
                 "msg" => "Invalid Email or Password",
                 "status" => false,
-                "action" => $_REQUEST['action'],
-                "sts" => "eror"
+                "action" => $_REQUEST['action']
             ];
         }
     }
