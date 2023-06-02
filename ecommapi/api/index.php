@@ -179,12 +179,43 @@ if (!empty($_REQUEST['action'])) {
             'action' => $_REQUEST['action'],
             'data' => $data
         ];
-    } else {
-        $response = [
-            'msg' => "undefine api call",
-            'sts' => false,
-            'action' => ""
-        ];
     }
-    echo json_encode($response);
+    /*Order Details Code*/ elseif (!empty($_REQUEST['action']) and $_REQUEST['action'] == "place_order" and !empty($_REQUEST['user_id'])) {
+        $order_date = [
+            'user_name' => $_REQUEST['user_name'],
+            'useremail' => $_REQUEST['useremail'],
+            'user_phone' => $_REQUEST['user_phone'],
+            'user_address' => $_REQUEST['user_address'],
+            'user_city' => $_REQUEST['user_city'],
+            'user_id' => $_REQUEST['user_id']
+        ];
+        if (insert_data($dbc, "tbl_orders", $order_date)) {
+            $order_id = mysqli_insert_id($dbc);
+            for ($i = 0; $i < count($_REQUEST['product_id']); $i++) {
+                $order_items = [
+                    'order_id' => $order_id,
+                    'product_id' => $_REQUEST['product_id'][$i],
+                    'size' => $_REQUEST['size'][$i],
+                    'qty' => $_REQUEST['qty'][$i],
+                    'price' => $_REQUEST['price'][$i],
+                    'sub_total' => $_REQUEST['sub_total'][$i]
+                ];
+                if (insert_data($dbc, "order_items", $order_items)) {
+                    $response = [
+                        'msg' => "Order Placed",
+                        'sts' => true,
+                        'action' => $_REQUEST['action']
+                    ];
+                }
+            }
+        }
+    }
 }
+if (empty($response)) {
+    $response = [
+        "msg" => "invalid api call. Undefined Action",
+        'sts' => "danger",
+        "action" => ''
+    ];
+}
+echo json_encode($response);
