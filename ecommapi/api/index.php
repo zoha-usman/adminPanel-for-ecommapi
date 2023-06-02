@@ -180,7 +180,7 @@ if (!empty($_REQUEST['action'])) {
             'data' => $data
         ];
     }
-    /*Order Details Code*/ elseif (!empty($_REQUEST['action']) and $_REQUEST['action'] == "place_order" and !empty($_REQUEST['user_id'])) {
+    /*Order Details Code Sales Items*/ elseif (!empty($_REQUEST['action']) and $_REQUEST['action'] == "place_order" and !empty($_REQUEST['user_id'])) {
         $order_date = [
             'user_name' => $_REQUEST['user_name'],
             'useremail' => $_REQUEST['useremail'],
