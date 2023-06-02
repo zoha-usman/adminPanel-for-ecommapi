@@ -7,7 +7,7 @@ if (!empty($_REQUEST['action'])) {
         @$password = $_REQUEST['password'];
         @$userdata = fetchRecord($dbc, "tbl_user", "email", $email);
         $q = mysqli_query($dbc, "SELECT * FROM tbl_user WHERE email='$email' AND password ='$password'");
-        $user= mysqli_fetch_assoc($q);
+        $user = mysqli_fetch_assoc($q);
         @$count = mysqli_num_rows($q);
         @$data = mysqli_fetch_assoc($q);
         if ($count == 1) {
@@ -15,16 +15,17 @@ if (!empty($_REQUEST['action'])) {
                 "msg" => "Logging...",
                 "status" => true,
                 "action" => $_REQUEST['action'],
-                "data" => $user                
+                "data" => $user
             ];
         } else {
             $response = [
                 "msg" => "Invalid Email or Password",
                 "status" => false,
-                "action" => $_REQUEST['action']
+                "action" => $_REQUEST['action'],
+                "sts" => "eror"
             ];
         }
-    }  
+    }
     /*Sign Up*/ elseif (!empty($_REQUEST['action']) and $_REQUEST['action'] == "signup") {
         @$name = trim($_REQUEST['name']);
         @$email = trim($_REQUEST['email']);
@@ -61,11 +62,10 @@ if (!empty($_REQUEST['action'])) {
         @$name = trim($_REQUEST['name']);
         @$email = trim($_REQUEST['email']);
         @$password = trim($_REQUEST['password']);
-        @$contact = trim($_REQUEST['contact']);
-        @$address = trim($_REQUEST['address']);
-        @$city= trim($_REQUEST['city']);
-        $sql = " UPDATE tbl_user SET name='$name',email='$email',password='$password', 
-         contact='$contact', address='$address', city='$city' WHERE id = " . $_REQUEST['user_id'] . "";
+        @$contact = $_REQUEST['contact'];
+        @$address = $_REQUEST['address'];
+        @$city = $_REQUEST['city'];
+        $sql = " UPDATE tbl_user SET name='$name',email='$email', password ='$password', contact ='$contact', address='$address', city='$city' WHERE id = " . $_REQUEST['user_id'] . "";
         $res = mysqli_query($dbc, $sql);
         if ($res == true) {
             $response = [
@@ -80,17 +80,61 @@ if (!empty($_REQUEST['action'])) {
                 "action" => $_REQUEST['action']
             ];
         }
+    }/*Profile Pic Upload*/ elseif (!empty($_REQUEST['action']) and $_REQUEST['action'] == "profile_pic_update" and $_REQUEST['user_id']) {
+        $img = $_FILES['img'];
+        if (empty($img)) {
+            $response = [
+                "msg" => "Image Not Selected",
+                "sts" => false,
+                "action" => $_REQUEST['action'],
+            ];
+        } else {
+            $name = $img['name'];
+            $tmpname = $img['tmp_name'];
+            $tempname = uniqid() . '_' . $name;
+            $path = "uploads/" . $tempname;
+            if (move_uploaded_file($tmpname, $path)) {
+                $img_upload = mysqli_query($dbc, "UPDATE tbl_user SET user_pic ='$tempname' WHERE id = " . $_REQUEST['user_id'] . " ");
+                if ($img_upload) {
+                    $response = [
+                        "msg" => "Profile Update",
+                        "sts" => "success",
+                        "pic_name" => $name,
+                        "img_path" => 'https://lms.cgit.pk/uploads/' . $tempname,
+                        "action" => $_REQUEST['action'],
+                        "status" => true
+                    ];
+                } else {
+                    $response = [
+                        "msg" => mysqli_error($dbc),
+                        "sts" => "danger",
+                        "action" => $_REQUEST['action'],
+                        "status" => false
+                    ];
+                }
+            } else {
+                $response = [
+                    "msg" => "error in uploading picture",
+                    "pic_name" => "",
+                    "img_path" => "",
+                    "sts" => "danger",
+                    "action" => $_REQUEST['action'],
+                    "status" => false
+
+                ];
+            }
+        }
     }
-    /*Show All Products */ elseif (!empty($_REQUEST['action']) and $_REQUEST['action'] == "show_products" ) {
-       if (!empty($_REQUEST['category']) and $_REQUEST['category']=="all") {
-        $sql = mysqli_query($dbc, "SELECT * FROM tbl_product");
-    }elseif (!empty($_REQUEST['category']) and $_REQUEST['category']=="new_arrivals_products") {
-        $sql = mysqli_query($dbc, "SELECT * FROM tbl_product ORDER BY id DESC LIMIT  " . $_REQUEST['limit'] . "  ");
-    }elseif (!empty($_REQUEST['category']) ) {
-        $sql = mysqli_query($dbc, "SELECT * FROM tbl_product WHERE catname = '" . $_REQUEST['category'] . "'  ORDER BY id DESC ");
-    }else{
-        $sql = mysqli_query($dbc, "SELECT * FROM tbl_product");
-    }
+    /*Show All Products */ elseif (!empty($_REQUEST['action']) and $_REQUEST['action'] == "show_products") {
+        if (!empty($_REQUEST['category']) and $_REQUEST['category'] == "all") {
+            $sql = mysqli_query($dbc, "SELECT * FROM tbl_product");
+        } elseif (!empty($_REQUEST['category']) and $_REQUEST['category'] == "new_arrivals_products") {
+            $sql = mysqli_query($dbc, "SELECT * FROM tbl_product ORDER BY id DESC LIMIT  " . $_REQUEST['limit'] . "  ");
+        } elseif (!empty($_REQUEST['category'])) {
+            $sql = mysqli_query($dbc, "SELECT * FROM tbl_product WHERE catname = '" . $_REQUEST['category'] . "'  ORDER BY id DESC ");
+        } else {
+            $sql = mysqli_query($dbc, "SELECT * FROM tbl_product");
+        }
         while ($product = mysqli_fetch_assoc($sql)) {
             $data[] = $product;
         }
@@ -111,7 +155,7 @@ if (!empty($_REQUEST['action'])) {
             'action' => $_REQUEST['action'],
             'data' => $data
         ];
-    }  
+    }
     /*Show Products by Category */ elseif (!empty($_REQUEST['action']) and $_REQUEST['action'] == "products_by_category" and $_REQUEST['category']) {
         $sql = mysqli_query($dbc, "SELECT * FROM tbl_product WHERE catname = '" . $_REQUEST['category'] . "'  ORDER BY id DESC ");
         while ($product = mysqli_fetch_assoc($sql)) {
@@ -125,26 +169,54 @@ if (!empty($_REQUEST['action'])) {
         ];
     }
 
-/*Show All Categories*/ elseif (!empty($_REQUEST['action']) and $_REQUEST['action'] == "show_all_Categories") {
-    $sql = mysqli_query($dbc, "SELECT * FROM tbl_category");
-    while ($product = mysqli_fetch_assoc($sql)) {
-        $data[] = $product;
+    /*Show All Categories*/ elseif (!empty($_REQUEST['action']) and $_REQUEST['action'] == "show_all_Categories") {
+        $sql = mysqli_query($dbc, "SELECT * FROM tbl_category");
+        while ($product = mysqli_fetch_assoc($sql)) {
+            $data[] = $product;
+        }
+        $response = [
+            'msg' => "AllCategories Showing",
+            'sts' => true,
+            'action' => $_REQUEST['action'],
+            'data' => $data
+        ];
     }
-    $response = [
-        'msg' => "AllCategories Showing",
-        'sts' => true,
-        'action' => $_REQUEST['action'],
-        'data' => $data
-    ];
+    /*Order Details Code Sales Items*/ elseif (!empty($_REQUEST['action']) and $_REQUEST['action'] == "place_order" and !empty($_REQUEST['user_id'])) {
+        $order_date = [
+            'user_name' => $_REQUEST['user_name'],
+            'useremail' => $_REQUEST['useremail'],
+            'user_phone' => $_REQUEST['user_phone'],
+            'user_address' => $_REQUEST['user_address'],
+            'user_city' => $_REQUEST['user_city'],
+            'user_id' => $_REQUEST['user_id']
+        ];
+        if (insert_data($dbc, "tbl_orders", $order_date)) {
+            $order_id = mysqli_insert_id($dbc);
+            for ($i = 0; $i < count($_REQUEST['product_id']); $i++) {
+                $order_items = [
+                    'order_id' => $order_id,
+                    'product_id' => $_REQUEST['product_id'][$i],
+                    'size' => $_REQUEST['size'][$i],
+                    'qty' => $_REQUEST['qty'][$i],
+                    'price' => $_REQUEST['price'][$i],
+                    'sub_total' => $_REQUEST['sub_total'][$i]
+                ];
+                if (insert_data($dbc, "order_items", $order_items)) {
+                    $response = [
+                        'msg' => "Order Placed",
+                        'sts' => true,
+                        'action' => $_REQUEST['action']
+                    ];
+                }
+            }
+        }
+    }
 }
-
-
-else {
+if (empty($response)) {
     $response = [
-        'msg' => "undefine api call",
-        'sts' => false,
-        'action' => ""
+        "msg" => "invalid api call. Undefined Action",
+        'sts' => "danger",
+        "action" => ''
     ];
 }
 echo json_encode($response);
-}
