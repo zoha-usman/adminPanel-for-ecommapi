@@ -181,7 +181,7 @@ if (!empty($_REQUEST['action'])) {
             'data' => $data
         ];
     }
-    /*Order Details Code Sales Items*/ elseif (!empty($_REQUEST['action']) and $_REQUEST['action'] == "place_order" and !empty($_REQUEST['user_id'])) {
+    /*Order Place Code Sales Items*/ elseif (!empty($_REQUEST['action']) and $_REQUEST['action'] == "place_order" and !empty($_REQUEST['user_id'])) {
         $order_date = [
             'user_name' => $_REQUEST['user_name'],
             'useremail' => $_REQUEST['useremail'],
@@ -210,6 +210,18 @@ if (!empty($_REQUEST['action'])) {
                 }
             }
         }
+    }
+    /*Order Showing Code Sales Items*/ elseif (!empty($_REQUEST['action']) and $_REQUEST['action'] == "show_order_details" and !empty($_REQUEST['user_id'])){
+        $sql = mysqli_query($dbc, "SELECT * FROM tbl_orders");
+        while ($orders = mysqli_fetch_assoc($sql)) {
+            $order_details[] = $orders;
+        }
+        $response = [
+            'msg' => "Order Details Showing",
+            'sts' => true,
+            'action' => $_REQUEST['action'],
+            'data' => $order_details
+        ];
     }
 }
 if (empty($response)) {
