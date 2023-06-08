@@ -5,7 +5,6 @@ mysqli_select_db($conn,"ecommdb");
 
  $cname=$_POST['cname'];
  $sdesc=$_POST['sdesc'];
-
  if($_FILES['upload']){
     $sn=$_FILES['upload']['tmp_name'];//mydocument/mypicture/hello.jpg
     $on=$_FILES['upload']['name'];//hello.jpg
